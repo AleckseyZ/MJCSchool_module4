@@ -6,6 +6,7 @@ import com.epam.esm.zotov.mjcschool.api.exception.AuthorizationFailedException;
 import com.epam.esm.zotov.mjcschool.api.exception.NoResourceFoundException;
 import com.epam.esm.zotov.mjcschool.api.exception.RequestNotExecutedException;
 import com.epam.esm.zotov.mjcschool.api.exception.RestExceptionResponse;
+import com.epam.esm.zotov.mjcschool.api.exception.SignUpFailedException;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -22,14 +23,18 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 @Order(Ordered.HIGHEST_PRECEDENCE)
 @PropertySource("classpath:error.properties")
 public class LocalizedCustomExceptionAdvice {
-    @Value("${error.msg.4010}")
-    private String error4010;
-    @Value("${error.code.4010}")
-    private String error4010Code;
+    @Value("${error.msg.4030}")
+    private String error4030;
+    @Value("${error.code.4030}")
+    private String error4030Code;
     @Value("${error.msg.4040}")
     private String error4040;
     @Value("${error.code.4040}")
     private String error4040Code;
+    @Value("${error.msg.4090}")
+    private String error4090;
+    @Value("${error.code.4090}")
+    private String error4090Code;
     @Value("${error.msg.5001}")
     private String error5001;
     @Value("${error.code.5001}")
@@ -59,9 +64,17 @@ public class LocalizedCustomExceptionAdvice {
 
     @ExceptionHandler(AuthorizationFailedException.class)
     public ResponseEntity<RestExceptionResponse> handleUnauthorizedException(Locale locale) {
-        RestExceptionResponse response = new RestExceptionResponse(messageSource.getMessage(error4010, null, locale),
-                error4010Code);
+        RestExceptionResponse response = new RestExceptionResponse(messageSource.getMessage(error4030, null, locale),
+                error4030Code);
 
-        return new ResponseEntity<>(response, HttpStatus.UNAUTHORIZED);
+        return new ResponseEntity<>(response, HttpStatus.FORBIDDEN);
+    }
+
+    @ExceptionHandler(SignUpFailedException.class)
+    public ResponseEntity<RestExceptionResponse> handleSignUpFailure(Locale locale) {
+        RestExceptionResponse response = new RestExceptionResponse(messageSource.getMessage(error4090, null, locale),
+                error4090Code);
+
+        return new ResponseEntity<>(response, HttpStatus.CONFLICT);
     }
 }

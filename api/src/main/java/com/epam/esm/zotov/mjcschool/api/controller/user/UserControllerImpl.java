@@ -1,5 +1,6 @@
 package com.epam.esm.zotov.mjcschool.api.controller.user;
 
+import java.security.Principal;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
@@ -7,10 +8,16 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
+import javax.validation.constraints.NotBlank;
+
+import com.epam.esm.zotov.mjcschool.api.controller.authorization.AuthorizationControllerImpl;
 import com.epam.esm.zotov.mjcschool.api.dto.ListDto;
 import com.epam.esm.zotov.mjcschool.api.dto.OrderDto;
 import com.epam.esm.zotov.mjcschool.api.dto.UserDto;
+import com.epam.esm.zotov.mjcschool.api.exception.AuthorizationFailedException;
 import com.epam.esm.zotov.mjcschool.api.exception.NoResourceFoundException;
+import com.epam.esm.zotov.mjcschool.api.exception.SignUpFailedException;
+import com.epam.esm.zotov.mjcschool.api.security.Roles;
 import com.epam.esm.zotov.mjcschool.dataaccess.model.Certificate;
 import com.epam.esm.zotov.mjcschool.dataaccess.model.Order;
 import com.epam.esm.zotov.mjcschool.dataaccess.model.User;
@@ -30,6 +37,7 @@ import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.methodOn;
 @Validated
 public class UserControllerImpl implements UserController {
     private static final String ORDER_RELATION = "orders";
+    private static final String LOGIN_RELATION = "log in";
     private static final int DEFAULT_LIMIT = 10;
     private static final int DEFAULT_START_ID = 0;
     private UserService userService;
@@ -74,7 +82,7 @@ public class UserControllerImpl implements UserController {
 
     @Override
     public OrderDto getOrder(long userId, int orderPosition) {
-        Optional<User> user = userService.getById(userId);
+        Optional<User> user = userService.findByIdWithOrders(userId);
         if (user.isEmpty()) {
             throw new NoResourceFoundException();
         } else {
@@ -91,7 +99,7 @@ public class UserControllerImpl implements UserController {
 
     @Override
     public ListDto<OrderDto> getUsersOrders(long userId, int startPosition, int limit) {
-        Optional<User> user = userService.getById(userId);
+        Optional<User> user = userService.findByIdWithOrders(userId);
         if (user.isEmpty()) {
             throw new NoResourceFoundException();
         } else {
@@ -123,29 +131,60 @@ public class UserControllerImpl implements UserController {
     }
 
     @Override
-    public OrderDto addOrder(long userId, long certificateId) {
-        Optional<User> user = userService.getById(userId);
-        Optional<Certificate> certificate = certificateService.getById(certificateId);
-        if (user.isEmpty() || certificate.isEmpty()) {
-            throw new NoResourceFoundException();
+    public OrderDto addOrder(long userId, long certificateId, Principal principal) {
+        if (isAuthorized(principal, userId)) {
+            Optional<User> user = userService.findByIdWithOrders(userId);
+            Optional<Certificate> certificate = certificateService.getById(certificateId);
+            if (user.isEmpty() || certificate.isEmpty()) {
+                throw new NoResourceFoundException();
+            } else {
+                Order order = Order.builder().purchaseTime(Instant.now()).purchasePrice(certificate.get().getPrice())
+                        .certificate(certificate.get()).user(user.get()).build();
+
+                Order savedOrderOptional = orderService.save(order);
+
+                Order savedOrder = savedOrderOptional;
+                OrderDto dto = new OrderDto(savedOrder);
+                addCommonOrderHateoasLinks(dto, 0);
+
+                return dto;
+            }
         } else {
-            Order order = Order.builder().purchaseTime(Instant.now()).purchasePrice(certificate.get().getPrice())
-                    .certificate(certificate.get()).user(user.get()).build();
-
-            Order savedOrderOptional = orderService.save(order);
-
-            Order savedOrder = savedOrderOptional;
-            OrderDto dto = new OrderDto(savedOrder);
-            addCommonOrderHateoasLinks(dto, 0);
-            return dto;
-
+            throw new AuthorizationFailedException();
         }
+    }
+
+    @Override
+    public UserDto signUp(@NotBlank String username, @NotBlank String password, @NotBlank String repeatPassword) {
+        if (!password.equals(repeatPassword)) {
+            throw new IllegalArgumentException();
+        } else {
+            Optional<User> newUser = userService.makeUser(username, password);
+            if (newUser.isEmpty()) {
+                throw new SignUpFailedException();
+            } else {
+                UserDto userDto = new UserDto(newUser.get());
+                userDto.add(
+                        linkTo(AuthorizationControllerImpl.class).withRel(LOGIN_RELATION));
+                return userDto;
+            }
+        }
+    }
+
+    private boolean isAuthorized(Principal principal, Long userId) {
+        boolean isAuthorized = false;
+        User activeUser = userService.findByUsername(principal.getName()).get();
+        if (activeUser.getUserId().equals(userId) || activeUser.getRole().getName().equals(Roles.ADMIN)) {
+            isAuthorized = true;
+        }
+        return isAuthorized;
     }
 
     private void addCommonUserHateoasLinks(UserDto user, int limit) {
         user.add(linkTo(methodOn(UserControllerImpl.class).getById(user.getUserId())).withSelfRel());
-        user.add(linkTo(methodOn(UserControllerImpl.class).getUsersOrders(user.getUserId(), limit, DEFAULT_START_ID))
-                .withRel(ORDER_RELATION));
+        user.add(linkTo(
+                methodOn(UserControllerImpl.class).getUsersOrders(user.getUserId(), limit, DEFAULT_START_ID))
+                        .withRel(ORDER_RELATION));
     }
 
     private void addCommonOrderHateoasLinks(OrderDto order, int orderPosition) {

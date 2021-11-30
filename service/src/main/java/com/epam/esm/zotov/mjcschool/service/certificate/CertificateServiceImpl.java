@@ -33,7 +33,7 @@ public class CertificateServiceImpl implements CertificateService {
     private String ascending;
     @Value("${search.descending}")
     private String descending;
-    private static final String TAG_SEPARATOR = "\\+";
+    private static final String TAG_SEPARATOR = ",";
     private CertificateRepository certificateRepo;
 
     @Autowired

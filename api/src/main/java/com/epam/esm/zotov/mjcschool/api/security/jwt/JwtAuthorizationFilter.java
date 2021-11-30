@@ -20,12 +20,13 @@ import org.springframework.web.filter.OncePerRequestFilter;
 public class JwtAuthorizationFilter extends OncePerRequestFilter {
     private static final String AUTHORIZATION_HEADER = "Authorization";
     private static final int EXPECTED_TOKEN_POSITION = 7;
-    private JwtUtil jwtUtil;
+    private JwtOperator jwtOperator;
+    private JwtTokenValidator tokenValidator;
     private UserDetailsService userService;
 
     @Autowired
-    public void setJwtUtil(JwtUtil jwtUtil) {
-        this.jwtUtil = jwtUtil;
+    public void setJwtUtil(JwtOperator jwtOperator) {
+        this.jwtOperator = jwtOperator;
     }
 
     @Autowired
@@ -33,16 +34,19 @@ public class JwtAuthorizationFilter extends OncePerRequestFilter {
         this.userService = userService;
     }
 
+    @Autowired
+    public void setTokenValidator(JwtTokenValidator tokenValidator) {
+        this.tokenValidator = tokenValidator;
+    }
+
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
             throws ServletException, IOException {
         String token = request.getHeader(AUTHORIZATION_HEADER);
-        System.out.println("IM'CALLED?");
-
         if (Objects.nonNull(token)) {
             token = token.substring(EXPECTED_TOKEN_POSITION);
-            if (jwtUtil.validateToke(token)) {
-                String username = jwtUtil.extractSubject(token);
+            if (tokenValidator.validateToke(token)) {
+                String username = jwtOperator.extractSubject(token);
                 UserDetails userDetails = userService.loadUserByUsername(username);
                 if (Objects.nonNull(userDetails)) {
                     UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(

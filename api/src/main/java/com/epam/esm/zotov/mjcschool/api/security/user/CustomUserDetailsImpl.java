@@ -16,12 +16,14 @@ public class CustomUserDetailsImpl implements UserDetails {
     private Long userId;
     private String username;
     private String password;
+    private String role;
     private Collection<GrantedAuthority> authorities;
 
     public CustomUserDetailsImpl(User user) {
         this.userId = user.getUserId();
         this.username = user.getUsername();
         this.password = user.getPassword();
+        this.role = user.getRole().getName();
         authorities = new ArrayList<>();
         authorities.add(new SimpleGrantedAuthority(user.getRole().getName()));
     }
