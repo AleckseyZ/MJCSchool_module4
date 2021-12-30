@@ -13,7 +13,7 @@ import org.springframework.context.support.ResourceBundleMessageSource;
 
 @SpringBootApplication(scanBasePackages = "com.epam.esm.zotov.mjcschool")
 @PropertySource("classpath:api.properties")
-public class Api {
+public class Application {
     @Value("${msg.baseName}")
     private String baseName;
     @Value("${msg.defaultLocale}")
@@ -22,7 +22,7 @@ public class Api {
     private String defaultEncoding;
 
     public static void main(String[] args) {
-        SpringApplication.run(Api.class, args);
+        SpringApplication.run(Application.class, args);
     }
 
     @Bean("messageSource")

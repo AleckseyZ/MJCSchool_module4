@@ -1,5 +1,6 @@
 plugins {
-    id("RESTBasics.common-conventions")
+    id("RESTSecurity.common-conventions")
+     jacoco
 }
 
 dependencies {
@@ -14,4 +15,15 @@ dependencies {
 	annotationProcessor("org.projectlombok:lombok:${Versions.lombokVer}")
 	testCompileOnly("org.projectlombok:lombok:${Versions.lombokVer}")
 	testAnnotationProcessor("org.projectlombok:lombok:${Versions.lombokVer}")
+}
+
+tasks.test {
+    finalizedBy(tasks.jacocoTestReport)
+}
+
+tasks.jacocoTestReport {
+    dependsOn(tasks.test)
+    reports {
+        xml.required.set(true)
+    }
 }

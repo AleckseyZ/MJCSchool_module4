@@ -11,10 +11,10 @@ import org.springframework.stereotype.Repository;
 
 @Repository
 public interface UserRepository extends CustomRepository<User, Long> {
-    @Query("SELECT u FROM User u JOIN FETCH u.orders WHERE u.userId=:id")
+    @Query("SELECT u FROM User u LEFT JOIN FETCH u.orders WHERE u.userId=:id")
     Optional<User> findByIdWithOrders(@Param("id") Long id);
 
-    @Query("SELECT u FROM User u JOIN FETCH u.role WHERE u.username=:username")
+    @Query("SELECT u FROM User u LEFT JOIN FETCH u.role WHERE u.username=:username")
     Optional<User> findByUsernameWithRole(@Param("username") String username);
 
     Optional<User> findByUsername(String username);

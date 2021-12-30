@@ -17,6 +17,8 @@ public class JwtTokenValidator {
         try {
             isValid = Objects.nonNull(Jwts.parser().setSigningKey(secret).parseClaimsJws(token).getBody().getSubject());
         } catch (Exception e) {
+            System.out.println(e.getMessage());
+            e.printStackTrace();
             isValid = false;
         }
         return isValid;

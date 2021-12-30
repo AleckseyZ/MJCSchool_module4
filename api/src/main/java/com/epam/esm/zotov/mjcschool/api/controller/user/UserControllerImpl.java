@@ -4,11 +4,12 @@ import java.security.Principal;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
-import javax.validation.constraints.NotBlank;
+import javax.validation.constraints.NotEmpty;
 
 import com.epam.esm.zotov.mjcschool.api.controller.authorization.AuthorizationControllerImpl;
 import com.epam.esm.zotov.mjcschool.api.dto.ListDto;
@@ -27,6 +28,7 @@ import com.epam.esm.zotov.mjcschool.service.user.UserService;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.validation.annotation.Validated;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.linkTo;
@@ -81,52 +83,60 @@ public class UserControllerImpl implements UserController {
     }
 
     @Override
-    public OrderDto getOrder(long userId, int orderPosition) {
-        Optional<User> user = userService.findByIdWithOrders(userId);
-        if (user.isEmpty()) {
-            throw new NoResourceFoundException();
-        } else {
-            List<Order> orders = new ArrayList<Order>(user.get().getOrders());
-            if (Objects.isNull(orders) || orders.isEmpty() || orders.size() >= orderPosition) {
+    public OrderDto getOrder(long userId, int orderPosition, Principal principal) {
+        if (isAuthorized(principal, userId)) {
+            Optional<User> user = userService.findByIdWithOrders(userId);
+            if (user.isEmpty()) {
                 throw new NoResourceFoundException();
             } else {
-                OrderDto dto = new OrderDto(orders.get(orderPosition));
-                addCommonOrderHateoasLinks(dto, orderPosition);
-                return dto;
+                List<Order> orders = new ArrayList<Order>(user.get().getOrders());
+                if (Objects.isNull(orders) || orders.isEmpty() || orders.size() >= orderPosition) {
+                    throw new NoResourceFoundException();
+                } else {
+                    OrderDto dto = new OrderDto(orders.get(orderPosition));
+                    addCommonOrderHateoasLinks(dto, orderPosition);
+                    return dto;
+                }
             }
+        } else {
+            throw new AuthorizationFailedException();
         }
     }
 
     @Override
-    public ListDto<OrderDto> getUsersOrders(long userId, int startPosition, int limit) {
-        Optional<User> user = userService.findByIdWithOrders(userId);
-        if (user.isEmpty()) {
-            throw new NoResourceFoundException();
-        } else {
-            List<Order> orders = new ArrayList<Order>(user.get().getOrders());
-            if (Objects.isNull(orders) || orders.isEmpty() || orders.size() < startPosition || startPosition < 0) {
+    public ListDto<OrderDto> getUsersOrders(long userId, int startPosition, int limit, Principal principal) {
+        if (isAuthorized(principal, userId)) {
+            Optional<User> user = userService.findByIdWithOrders(userId);
+            if (user.isEmpty()) {
                 throw new NoResourceFoundException();
             } else {
-                int ordersCount = orders.size();
-                List<Order> sublist;
-                if (ordersCount > startPosition + limit) {
-                    sublist = orders.subList(startPosition, startPosition + limit);
+                List<Order> orders = new ArrayList<Order>(user.get().getOrders());
+                if (Objects.isNull(orders) || orders.isEmpty() || orders.size() < startPosition || startPosition < 0) {
+                    throw new NoResourceFoundException();
                 } else {
-                    sublist = orders.subList(startPosition, ordersCount);
-                }
-                List<OrderDto> orderSublist = sublist.stream().map(order -> new OrderDto(order))
-                        .collect(Collectors.toList());
-                int sublistSize = orderSublist.size();
-                for (int i = 0; i < sublistSize; i++) {
-                    addCommonOrderHateoasLinks(orderSublist.get(i), startPosition + i);
-                }
+                    int ordersCount = orders.size();
+                    List<Order> sublist;
+                    if (ordersCount > startPosition + limit) {
+                        sublist = orders.subList(startPosition, startPosition + limit);
+                    } else {
+                        sublist = orders.subList(startPosition, ordersCount);
+                    }
+                    List<OrderDto> orderSublist = sublist.stream().map(order -> new OrderDto(order))
+                            .collect(Collectors.toList());
+                    int sublistSize = orderSublist.size();
+                    for (int i = 0; i < sublistSize; i++) {
+                        addCommonOrderHateoasLinks(orderSublist.get(i), startPosition + i);
+                    }
 
-                ListDto<OrderDto> listDto = new ListDto<OrderDto>(orderSublist);
-                listDto.addNextPageLink(methodOn(UserControllerImpl.class).getPage(limit, limit + startPosition));
-                listDto.addPreviousPageLink(methodOn(UserControllerImpl.class).getPage(limit, startPosition - limit));
-                return listDto;
+                    ListDto<OrderDto> listDto = new ListDto<OrderDto>(orderSublist);
+                    listDto.addNextPageLink(methodOn(UserControllerImpl.class).getPage(limit, limit + startPosition));
+                    listDto.addPreviousPageLink(
+                            methodOn(UserControllerImpl.class).getPage(limit, startPosition - limit));
+                    return listDto;
+                }
             }
-
+        } else {
+            throw new AuthorizationFailedException();
         }
     }
 
@@ -155,11 +165,11 @@ public class UserControllerImpl implements UserController {
     }
 
     @Override
-    public UserDto signUp(@NotBlank String username, @NotBlank String password, @NotBlank String repeatPassword) {
-        if (!password.equals(repeatPassword)) {
+    public UserDto signUp(@RequestBody @NotEmpty Map<String, String> credentials) {
+        if (!credentials.get("password").equals(credentials.get("repeatPassword"))) {
             throw new IllegalArgumentException();
         } else {
-            Optional<User> newUser = userService.makeUser(username, password);
+            Optional<User> newUser = userService.makeUser(credentials.get("username"), credentials.get("password"));
             if (newUser.isEmpty()) {
                 throw new SignUpFailedException();
             } else {
@@ -183,12 +193,12 @@ public class UserControllerImpl implements UserController {
     private void addCommonUserHateoasLinks(UserDto user, int limit) {
         user.add(linkTo(methodOn(UserControllerImpl.class).getById(user.getUserId())).withSelfRel());
         user.add(linkTo(
-                methodOn(UserControllerImpl.class).getUsersOrders(user.getUserId(), limit, DEFAULT_START_ID))
+                methodOn(UserControllerImpl.class).getUsersOrders(user.getUserId(), limit, DEFAULT_START_ID, null))
                         .withRel(ORDER_RELATION));
     }
 
     private void addCommonOrderHateoasLinks(OrderDto order, int orderPosition) {
-        order.add(linkTo(methodOn(UserControllerImpl.class).getOrder(order.getUser().getUserId(), orderPosition))
+        order.add(linkTo(methodOn(UserControllerImpl.class).getOrder(order.getUser().getUserId(), orderPosition, null))
                 .withSelfRel());
     }
 }

@@ -47,11 +47,10 @@ public class DataAccessConfig {
     @Value("${hibernate.dialect}")
     private String hibernateDialect;
 
-    // TODO config prod datasource
     @Profile("prod")
     @Bean
     public DataSource dataSource() {
-        return makeDataSource(driver, testUrl, user, password);
+        return makeDataSource(driver, url, user, password);
     }
 
     @Profile("dev")

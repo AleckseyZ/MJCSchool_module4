@@ -1,4 +1,4 @@
-package com.epam.esm.zotov.module2.service.user;
+package com.epam.esm.zotov.mjcschool.service.user;
 
 import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -11,7 +11,6 @@ import com.epam.esm.zotov.mjcschool.dataaccess.model.Role;
 import com.epam.esm.zotov.mjcschool.dataaccess.model.User;
 import com.epam.esm.zotov.mjcschool.dataaccess.repository.role.RoleRepository;
 import com.epam.esm.zotov.mjcschool.dataaccess.repository.user.UserRepository;
-import com.epam.esm.zotov.mjcschool.service.user.UserServiceImpl;
 
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -44,5 +43,14 @@ public class UserServiceTest {
         assertAll(() -> assertTrue(userService.makeUser("absent", "password").isPresent()),
                 () -> assertEquals(userService.makeUser("absent", "password").get().getUsername(), "absent"),
                 () -> assertEquals(userService.makeUser("absent", "password").get().getPassword(), "password"));
+    }
+
+    @Test
+    void findByUsernameTest() {
+    }
+
+    @Test
+    void findByIdWithOrders() {
+
     }
 }

@@ -10,9 +10,9 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
 public interface OrderRepository extends CustomRepository<Order, Long> {
-    @Query("SELECT o FROM Order o JOIN FETCH o.user JOIN FETCH o.certificate WHERE o.orderId=:id")
+    @Query("SELECT o FROM Order o LEFT JOIN FETCH o.user JOIN FETCH o.certificate WHERE o.orderId=:id")
     Optional<Order> findByIdWithUserAndCertificate(@Param("id") Long id);
 
-    @Query("SELECT o FROM Order o JOIN FETCH o.user JOIN FETCH o.certificate")
+    @Query("SELECT o FROM Order o LEFT JOIN FETCH o.user JOIN FETCH o.certificate")
     List<Order> findAllWithUserAndCertificate();
 }

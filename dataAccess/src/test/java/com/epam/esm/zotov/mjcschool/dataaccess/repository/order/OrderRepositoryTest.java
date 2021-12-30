@@ -1,11 +1,14 @@
-package com.epam.esm.zotov.mjcschool.dataaccess.repository.tag;
+package com.epam.esm.zotov.mjcschool.dataaccess.repository.order;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
+import static org.junit.jupiter.api.Assumptions.assumeFalse;
 import static org.junit.jupiter.api.Assumptions.assumeTrue;
+
+import java.util.Optional;
 
 import com.epam.esm.zotov.mjcschool.dataaccess.DataAccessConfig;
 import com.epam.esm.zotov.mjcschool.dataaccess.DataAccessTestConfig;
-import com.epam.esm.zotov.mjcschool.dataaccess.model.Tag;
+import com.epam.esm.zotov.mjcschool.dataaccess.model.Order;
 
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -20,26 +23,23 @@ import org.springframework.transaction.annotation.Transactional;
 @ExtendWith(SpringExtension.class)
 @Transactional
 @ContextConfiguration(classes = { DataAccessConfig.class, DataAccessTestConfig.class })
-public class TagRepositoryTest {
+public class OrderRepositoryTest {
     @Autowired
-    TagRepository tagRepo;
-
-    @Test
-    void findFavTagOfBiggestSpenderTest() throws Exception {
-        assertEquals("tag1", tagRepo.findFavoriteTagOfMostSpendingUser().get().getName());
-    }
+    OrderRepository orderRepo;
 
     @Test
     void readTest() {
-        Tag tag = tagRepo.save(new Tag(null, "test"));
-        assertEquals("test", tagRepo.getById(tag.getTagId()).getName());
+        assertDoesNotThrow(() -> orderRepo.findById(1L));
+        assertDoesNotThrow(() -> orderRepo.findAll());
     }
 
     @Test
     void deleteTest() {
-        Tag tag = tagRepo.save(new Tag(null, "test"));
-        tagRepo.delete(tag);
+        Optional<Order> order = orderRepo.findById(1L);
+        assumeTrue(order.isPresent());
 
-        assumeTrue(tagRepo.findById(tag.getTagId()).isEmpty());
+        orderRepo.deleteById(1L);
+        order = orderRepo.findById(1L);
+        assumeFalse(order.isPresent());
     }
 }

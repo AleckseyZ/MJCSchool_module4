@@ -1,4 +1,4 @@
-package com.epam.esm.zotov.module2.service.certificate;
+package com.epam.esm.zotov.mjcschool.service.certificate;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.Mockito.when;
@@ -14,7 +14,6 @@ import java.util.Set;
 import com.epam.esm.zotov.mjcschool.dataaccess.model.Certificate;
 import com.epam.esm.zotov.mjcschool.dataaccess.model.Tag;
 import com.epam.esm.zotov.mjcschool.dataaccess.repository.certificate.CertificateRepository;
-import com.epam.esm.zotov.mjcschool.service.certificate.CertificateServiceImpl;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -74,11 +73,11 @@ public class CertificateServiceTest {
     void searchByTagsTest() {
         Map<String, String> searchParams = new HashMap<>();
         searchParams.put("tagName", "tag1,tag2");
-        assertEquals("cert2", certService.search(searchParams).get(0).getName());
+        assertEquals("cert1", certService.search(searchParams).get(0).getName());
 
         searchParams = new HashMap<>();
         searchParams.put("tagName", "tag2,tag3");
-        assertEquals("cert3", certService.search(searchParams).get(0).getName());
+        assertEquals("cert1", certService.search(searchParams).get(0).getName());
     }
 
     @Test
@@ -89,7 +88,7 @@ public class CertificateServiceTest {
 
         searchParams = new HashMap<>();
         searchParams.put("name", "cert2");
-        assertEquals("cert2", certService.search(searchParams).get(0).getName());
+        assertEquals("cert1", certService.search(searchParams).get(0).getName());
     }
 
     @Test
@@ -100,14 +99,14 @@ public class CertificateServiceTest {
 
         searchParams = new HashMap<>();
         searchParams.put("description", "desc3");
-        assertEquals("cert3", certService.search(searchParams).get(0).getName());
+        assertEquals("cert1", certService.search(searchParams).get(0).getName());
     }
 
     @Test
     void sortByNameTest() {
         Map<String, String> searchParams = new HashMap<>();
         searchParams.put("sortByName", "ASC");
-        assertEquals("cert3", certService.search(searchParams).get(0).getName());
+        assertEquals("cert1", certService.search(searchParams).get(0).getName());
 
         searchParams = new HashMap<>();
         searchParams.put("sortByName", "DESC");
