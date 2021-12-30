@@ -1,0 +1,14 @@
+INSERT INTO user_roles(name) VALUES ('TEST');
+INSERT INTO users(username, password, role_id) VALUES ('user1', '123', 1);
+INSERT INTO users(username, password, role_id) VALUES ('user2', '123', 1);
+INSERT INTO tags(name) VALUES ('tag1');
+INSERT INTO tags(name) VALUES ('tag2');
+INSERT INTO certificates(name, description, price, duration, create_date, update_date) VALUES ('cert1', 'test cert', 1, 1, current_timestamp, current_timestamp);
+INSERT INTO certificates(name, description, price, duration, create_date, update_date) VALUES ('cert2', 'test cert', 1, 1, current_timestamp, current_timestamp);
+INSERT INTO certificates_tags(certificate_id, tag_id) VALUES (1, 1);
+INSERT INTO certificates_tags(certificate_id, tag_id) VALUES (2, 2);
+INSERT INTO orders(user_id, certificate_id, purchase_timestamp, purchase_price, create_date, update_date) VALUES (1, 1, current_timestamp, 1, current_timestamp, current_timestamp);
+INSERT INTO orders(user_id, certificate_id, purchase_timestamp, purchase_price, create_date, update_date) VALUES (1, 1, current_timestamp, 1, current_timestamp, current_timestamp);
+INSERT INTO orders(user_id, certificate_id, purchase_timestamp, purchase_price, create_date, update_date) VALUES (1, 2, current_timestamp, 1, current_timestamp, current_timestamp);
+INSERT INTO orders(user_id, certificate_id, purchase_timestamp, purchase_price, create_date, update_date) VALUES (2, 1, current_timestamp, 1, current_timestamp, current_timestamp);
+INSERT INTO orders(user_id, certificate_id, purchase_timestamp, purchase_price, create_date, update_date) VALUES (2, 2, current_timestamp, 1, current_timestamp, current_timestamp);
