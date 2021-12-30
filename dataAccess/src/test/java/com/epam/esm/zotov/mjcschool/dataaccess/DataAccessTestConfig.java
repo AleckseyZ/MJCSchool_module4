@@ -16,6 +16,8 @@ public class DataAccessTestConfig {
         EmbeddedPostgres embeddedPg = EmbeddedPostgres.start();
         ResourceDatabasePopulator schemaCreator = new ResourceDatabasePopulator(
                 new ClassPathResource("/test/schema.sql"), new ClassPathResource("/test/data.sql"));
+        embeddedPg.getPostgresDatabase().setLoginTimeout(60);
+
         schemaCreator.populate(embeddedPg.getPostgresDatabase().getConnection());
 
         return embeddedPg.getPostgresDatabase();
