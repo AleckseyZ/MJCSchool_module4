@@ -40,6 +40,8 @@ public class DataAccessConfig {
     private String password;
     @Value("${test.url}")
     private String testUrl;
+    @Value("${test.tempUrl}")
+    private String tempUrl;
     @Value("${hibernate.scanPackage}")
     private String scanPackage;
     @Value("${hibernate.dialectPropertyName}")

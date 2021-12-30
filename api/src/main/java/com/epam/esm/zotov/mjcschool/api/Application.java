@@ -6,6 +6,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.boot.web.servlet.support.SpringBootServletInitializer;
 import org.springframework.context.MessageSource;
 import org.springframework.context.annotation.PropertySource;
 import org.springframework.context.support.PropertySourcesPlaceholderConfigurer;
@@ -13,7 +14,7 @@ import org.springframework.context.support.ResourceBundleMessageSource;
 
 @SpringBootApplication(scanBasePackages = "com.epam.esm.zotov.mjcschool")
 @PropertySource("classpath:api.properties")
-public class Application {
+public class Application extends SpringBootServletInitializer {
     @Value("${msg.baseName}")
     private String baseName;
     @Value("${msg.defaultLocale}")
